@@ -1,0 +1,129 @@
+version: '3.8'
+
+services:
+  # -------------------------------
+  # PostgreSQL Database
+  # -------------------------------
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: caresuitedb
+      POSTGRES_USER: caresuiteuser
+      POSTGRES_PASSWORD: care@suite123PassVstrNG
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - caresuite-network
+    ports:
+      - "5432:5432"  # Only for dev/testing; in production you might not expose externally
+
+  # -------------------------------
+  # pgAdmin (optional, for database management)
+  # -------------------------------
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@caresuite.care
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - caresuite-network
+
+  # -------------------------------
+  # Backend (API)
+  # -------------------------------
+  backend:
+    build:
+      context: ../backend   # path to your backend project
+      dockerfile: Dockerfile
+    container_name: caresuite-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://caresuiteuser:supersecurepassword@postgres:5432/caresuitedb
+    depends_on:
+      - postgres
+    networks:
+      - caresuite-network
+    expose:
+      - "3000"  # Internal port for reverse proxy
+
+  # -------------------------------
+  # Landing Page (React)
+  # -------------------------------
+  landing:
+    build:
+      context: ../landing
+      dockerfile: Dockerfile
+    container_name: caresuite-landing
+    restart: unless-stopped
+    networks:
+      - caresuite-network
+    expose:
+      - "80"   # Internal port
+
+  # -------------------------------
+  # Admin Portal (React)
+  # -------------------------------
+  admin-portal:
+    build:
+      context: ../admin-portal
+      dockerfile: Dockerfile
+    container_name: caresuite-admin
+    restart: unless-stopped
+    networks:
+      - caresuite-network
+    expose:
+      - "80"   # Internal port
+
+  # -------------------------------
+  # Family Portal (React)
+  # -------------------------------
+  family-portal:
+    build:
+      context: ../family-portal
+      dockerfile: Dockerfile
+    container_name: caresuite-family
+    restart: unless-stopped
+    networks:
+      - caresuite-network
+    expose:
+      - "80"   # Internal port
+
+  # -------------------------------
+  # Reverse Proxy (Nginx)
+  # -------------------------------
+  proxy:
+    image: nginx:alpine
+    container_name: caresuite-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro   # We'll put subdomain configs here
+      - ./nginx/certs:/etc/nginx/certs:ro   # Optional: SSL certs
+    depends_on:
+      - landing
+      - backend
+      - admin-portal
+      - family-portal
+    networks:
+      - caresuite-network
+
+# -------------------------------
+# Volumes & Network
+# -------------------------------
+volumes:
+  pgdata:
+
+networks:
+  caresuite-network:
+    driver: bridge
