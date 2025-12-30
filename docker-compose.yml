@@ -146,7 +146,7 @@ services:
       - ./nginx/certs:/etc/nginx/certs:ro   # Optional: SSL certs
     depends_on:
       - landing
-      - backend
+      # - backend
       # - admin-portal
     networks:
       - caresuite-network
