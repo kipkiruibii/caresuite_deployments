@@ -57,7 +57,7 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgres://caresuiteuser:care!suite123PassVstrNG@postgres:5432/caresuitedb
+      DATABASE_URL: postgres://caresuiteuser:care%21suite123PassVstrNG@postgres:5432/caresuitedb
     depends_on:
       - postgres
     networks:
