@@ -18,6 +18,11 @@ services:
       - caresuite-network
     ports:
       - "5432:5432"  # Only for dev/testing; in production you might not expose externally
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U caresuiteuser -d caresuitedb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # -------------------------------
   # pgAdmin (optional, for database management)
@@ -35,13 +40,18 @@ services:
       - postgres
     networks:
       - caresuite-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/misc/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # -------------------------------
   # Backend (API)
   # -------------------------------
   backend:
     build:
-      context: ../backend   # path to your backend project
+      context: ../caresuite_cms   
       dockerfile: Dockerfile
     container_name: caresuite-backend
     restart: unless-stopped
@@ -54,13 +64,18 @@ services:
       - caresuite-network
     expose:
       - "3000"  # Internal port for reverse proxy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # -------------------------------
   # Landing Page (React)
   # -------------------------------
   landing:
     build:
-      context: ../landing
+      context: ../caresuite_prelaunch
       dockerfile: Dockerfile
     container_name: caresuite-landing
     restart: unless-stopped
@@ -68,34 +83,53 @@ services:
       - caresuite-network
     expose:
       - "80"   # Internal port
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # -------------------------------
   # Admin Portal (React)
   # -------------------------------
   admin-portal:
     build:
-      context: ../admin-portal
+      context: ../caresuite_portal
       dockerfile: Dockerfile
     container_name: caresuite-admin
     restart: unless-stopped
     networks:
       - caresuite-network
+    depends_on:
+      - backend
     expose:
       - "80"   # Internal port
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # -------------------------------
   # Family Portal (React)
   # -------------------------------
-  family-portal:
-    build:
-      context: ../family-portal
-      dockerfile: Dockerfile
-    container_name: caresuite-family
-    restart: unless-stopped
-    networks:
-      - caresuite-network
-    expose:
-      - "80"   # Internal port
+  # family-portal:
+  #   build:
+  #     context: ../caresuite_family
+  #     dockerfile: Dockerfile
+  #   container_name: caresuite-family
+  #   restart: unless-stopped
+  #   networks:
+  #     - caresuite-network
+  #   depends_on:
+  #     - backend
+  #   expose:
+  #     - "80"   # Internal port
+  #   healthcheck:
+  #     test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
 
   # -------------------------------
   # Reverse Proxy (Nginx)
@@ -111,12 +145,17 @@ services:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro   # We'll put subdomain configs here
       - ./nginx/certs:/etc/nginx/certs:ro   # Optional: SSL certs
     depends_on:
-      - landing
-      - backend
-      - admin-portal
-      - family-portal
+      - caresuite_prelaunch
+      - caresuite_cms
+      - caresuite_portal
+      - caresuite_family
     networks:
       - caresuite-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 # -------------------------------
 # Volumes & Network
