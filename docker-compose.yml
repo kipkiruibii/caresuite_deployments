@@ -92,23 +92,23 @@ services:
   # -------------------------------
   # Admin Portal (React)
   # -------------------------------
-  admin-portal:
-    build:
-      context: ../caresuite_portal
-      dockerfile: Dockerfile
-    container_name: caresuite-admin
-    restart: unless-stopped
-    networks:
-      - caresuite-network
-    depends_on:
-      - backend
-    expose:
-      - "80"   # Internal port
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  # admin-portal:
+  #   build:
+  #     context: ../caresuite_portal
+  #     dockerfile: Dockerfile
+  #   container_name: caresuite-admin
+  #   restart: unless-stopped
+  #   networks:
+  #     - caresuite-network
+  #   depends_on:
+  #     - backend
+  #   expose:
+  #     - "80"   # Internal port
+  #   healthcheck:
+  #     test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
 
   # -------------------------------
   # Family Portal (React)
