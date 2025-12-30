@@ -11,7 +11,7 @@ services:
     environment:
       POSTGRES_DB: caresuitedb
       POSTGRES_USER: caresuiteuser
-      POSTGRES_PASSWORD: care@suite123PassVstrNG
+      POSTGRES_PASSWORD: care!suite123PassVstrNG
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
@@ -57,7 +57,7 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgres://caresuiteuser:supersecurepassword@postgres:5432/caresuitedb
+      DATABASE_URL: postgres://caresuiteuser:care!suite123PassVstrNG@postgres:5432/caresuitedb
     depends_on:
       - postgres
     networks:
@@ -146,15 +146,11 @@ services:
       - ./nginx/certs:/etc/nginx/certs:ro   # Optional: SSL certs
     depends_on:
       - landing
-      # - backend
+      - backend
       # - admin-portal
     networks:
       - caresuite-network
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+
 
 # -------------------------------
 # Volumes & Network
