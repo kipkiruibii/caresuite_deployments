@@ -147,7 +147,7 @@ services:
     depends_on:
       - landing
       - backend
-      - admin-portal
+      # - admin-portal
     networks:
       - caresuite-network
     healthcheck:
