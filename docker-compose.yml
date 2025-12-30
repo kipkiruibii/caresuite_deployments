@@ -145,10 +145,9 @@ services:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro   # We'll put subdomain configs here
       - ./nginx/certs:/etc/nginx/certs:ro   # Optional: SSL certs
     depends_on:
-      - caresuite_prelaunch
-      - caresuite_cms
-      - caresuite_portal
-      - caresuite_family
+      - landing
+      - backend
+      - admin-portal
     networks:
       - caresuite-network
     healthcheck:
